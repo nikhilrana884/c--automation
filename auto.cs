@@ -1,7 +1,10 @@
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OfficeOpenXml;
+using System;
+using System.Data.SqlClient;
 using System.IO;
+using DotNetEnv;
 
 class Program
 {
@@ -27,6 +30,22 @@ class Program
 
             excelPackage.SaveAs(new FileInfo(filePath));
         }
+
+
+        var connectionString = Env.GetString("ConnectionStr");
+        var tableName = Env.GetString("AutoTable");
+
+        using (var connection = new SqlConnection(connectionString))
+        {
+            connection.Open();
+            var insertQuery = $"INSERT INTO {tableName} (Heading) VALUES (@Heading)";
+            using (var command = new SqlCommand(insertQuery, connection))
+            {
+                command.Parameters.AddWithValue("@Heading", headingText);
+                command.ExecuteNonQuery();
+            }
+        }
+
         webDriver.Quit();
     }
 }
